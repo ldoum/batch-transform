@@ -1,1 +1,1 @@
-Edit transform data of armature bones. Active armatures only.
+Edit transform data of objects of varying types and bones of selected armatures. 
