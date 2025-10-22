@@ -750,7 +750,7 @@ BoneTransformData,
 
 ARMATURE_PT_Panel, 
 
-#21 operators
+#22 operators
 ARMATURE_OT_Apply_Bone_Transform, 
 OBJECT_OT_Apply_Object_Transform,
 
@@ -791,3 +791,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
