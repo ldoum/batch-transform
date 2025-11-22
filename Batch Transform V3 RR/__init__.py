@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Batch transform v3",
     "author": "Lancine Doumbia",
-    "version": (3, 0, 0),
+    "version": (3, 0, 1),
     "blender": (2, 8, 0),
     "location": "View3D > Sidebar",
     "description": "Apply transform and restriction actions to an unlimited number of objects / armature bones at once",
@@ -23,4 +23,5 @@ def unregister():
     properties.unregister()
 
 if __name__ == "__main__":
+
     register()
