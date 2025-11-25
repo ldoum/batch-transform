@@ -312,7 +312,7 @@ def register():
     
 def unregister():
     for cls in reversed(classes):
-        bpy.utils.register_class(cls)
+        bpy.utils.unregister_class(cls)
     del bpy.types.Scene.inst
 
 if __name__ == "__main__":
