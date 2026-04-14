@@ -1,7 +1,7 @@
 import bpy
 
 def rotation_status(self, context):
-    print(f"Rotation mode set to {self.rotation}")
+    print(f"Rotation mode set to {self.rotation_m}")
 
 class BoneTransformData(bpy.types.PropertyGroup):
  
