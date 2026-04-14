@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Batch transform v3",
     "author": "Lancine Doumbia",
-    "version": (3, 0, 1),
+    "version": (3, 1, 1),
     "blender": (2, 8, 0),
     "location": "View3D > Sidebar",
     "description": "Apply transform and restriction actions to an unlimited number of objects / armature bones at once",
