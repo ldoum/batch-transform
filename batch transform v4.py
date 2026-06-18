@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Batch transform",
     "author": "Lancine Doumbia",
-    "version": (4, 0, 0),
+    "version": (4, 0, 1),
     "blender": (2, 8, 0),
     "location": "View3D > Sidebar",
     "description": "Apply transform and restriction actions to an unlimited number of objects / armature bones at once",
@@ -9,11 +9,6 @@ bl_info = {
     "doc_url": "",
     "category": "Object",
 }
-
-
-
-
-
 
 import bpy, math 
 
@@ -23,51 +18,51 @@ class TRANSFORMADDON_PG_Transform_Data(bpy.types.PropertyGroup):
     
     #location [3]
     x_lock_locate: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     y_lock_locate: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     z_lock_locate: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     
     #rotation [6]
     x_lock_rotate: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     y_lock_rotate: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     z_lock_rotate: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     
     #scale [9]
     x_lock_scale: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     y_lock_scale: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
     z_lock_scale: bpy.props.BoolProperty(
-        name="Lock", 
+        name="", 
         description="Click once to lock.", 
         default=False
     )
@@ -174,7 +169,7 @@ class TRANSFORMADDON_PG_Transform_Data(bpy.types.PropertyGroup):
     ### new prop. [23]  
     mode_of_rotation: bpy.props.EnumProperty(
         name="Mode",
-        description="Choose rotation mode for selected bones",
+        description="Choose rotation mode for selected bones/objects",
         items=[
             ('XYZ', "XYZ Euler", "Set rotation mode to XYZ Euler"),
             ('XZY', "XZY Euler", "Set rotation mode to XZY Euler"),
@@ -187,37 +182,65 @@ class TRANSFORMADDON_PG_Transform_Data(bpy.types.PropertyGroup):
         default='QUATERNION',
         
     )
+    
+    # [24]
+    mode_of_lock: bpy.props.EnumProperty(
+        name="Set lock mode",
+        description="Choose lock mode for selected bones/objects",
+        items=[
+            ('ENABLE', "Lock", "Lock items"),
+            ('DISABLE', "Unlock", "Unlock items"),
+            
+        ],
+        default='ENABLE',
+    )
+
 
 def apply_lock_data(context, items):
 
     trans_edit = context.scene.trans_edit
-
+  
+    #add feature to set mode first before setting sequence and then apply it
+    if trans_edit.mode_of_lock == "ENABLE":
+        activate = True
+    else:
+        activate = False
+        
     for item in items: 
             
         #location data
-        item.lock_location = (
-        trans_edit.x_lock_locate, 
-        trans_edit.y_lock_locate, 
-        trans_edit.z_lock_locate
-        )
-    
+        if trans_edit.x_lock_locate:
+            item.lock_location[0] = activate
+        
+        if trans_edit.y_lock_locate: 
+            item.lock_location[1] = activate
+        
+        if trans_edit.z_lock_locate:
+            item.lock_location[2] = activate
+       
         #rotation data 
-        item.lock_rotation = (
-        trans_edit.x_lock_rotate,
-        trans_edit.y_lock_rotate,
-        trans_edit.z_lock_rotate
-        )
-           
-      
+        if trans_edit.x_lock_rotate:
+            item.lock_rotation[0] = activate
+        
+        if trans_edit.y_lock_rotate:
+            item.lock_rotation[1] = activate
+        
+        if trans_edit.z_lock_rotate:
+            item.lock_rotation[2] = activate
+        
         #scale data 
-        item.lock_scale = (
-        trans_edit.x_lock_scale,
-        trans_edit.y_lock_scale,
-        trans_edit.z_lock_scale,
-        )    
-      
+        if trans_edit.x_lock_scale:
+            item.lock_scale[0] = activate
+        
+        if trans_edit.y_lock_scale:
+            item.lock_scale[1] = activate
+        
+        if trans_edit.z_lock_scale:
+            item.lock_scale[2] = activate
+
       
 def apply_rotation_mode(context, items):
+    
     trans_edit = context.scene.trans_edit
 
     for item in items: 
@@ -226,7 +249,8 @@ def apply_rotation_mode(context, items):
         item.rotation_mode = trans_edit.mode_of_rotation  
         
     
-def apply_transform_values(context, items):        
+def apply_transform_values(context, items):   
+         
     trans_edit = context.scene.trans_edit
 
     for item in items:  
@@ -237,7 +261,6 @@ def apply_transform_values(context, items):
             trans_edit.y_val_locate, 
             trans_edit.z_val_locate
         )
-    
     
         if trans_edit.mode_of_rotation == "QUATERNION":
             
@@ -257,8 +280,7 @@ def apply_transform_values(context, items):
                 math.radians(trans_edit.y_val_rotate_euler),
                 math.radians(trans_edit.z_val_rotate_euler)
             )
-           
-      
+         
         #scale data 
         item.scale = (
             trans_edit.x_val_scale,
@@ -273,9 +295,7 @@ class TRANSFORMADDON_OT_Apply_Lock_Data(bpy.types.Operator):
     bl_description = "Set a sequence of enabled and disabled locks."
     bl_options = {"REGISTER","UNDO"}
     
-    
     def execute(self, context):
-        
         
         if context.mode == "OBJECT":
             apply_lock_data(context, context.selected_objects)
@@ -293,9 +313,7 @@ class TRANSFORMADDON_OT_Apply_Rotation_Mode(bpy.types.Operator):
     bl_description = "Set a sequence of enabled and disabled locks."
     bl_options = {"REGISTER","UNDO"}
     
-    
     def execute(self, context):
-        
         
         if context.mode == "OBJECT":
             apply_rotation_mode(context, context.selected_objects)
@@ -313,9 +331,7 @@ class TRANSFORMADDON_OT_Apply_Transform_Data(bpy.types.Operator):
     bl_description = "Set the value."
     bl_options = {"REGISTER","UNDO"}
     
-    
     def execute(self, context):
-        
         
         if context.mode == "OBJECT":
             apply_transform_values(context, context.selected_objects)
@@ -336,7 +352,6 @@ class TRANSFORMADDON_OT_Reset_Transform_Data(bpy.types.Operator):
         
         trans_edit = context.scene.trans_edit
         
-        
         ### reset locks
         trans_edit.x_lock_locate = False
         trans_edit.y_lock_locate = False
@@ -354,7 +369,7 @@ class TRANSFORMADDON_OT_Reset_Transform_Data(bpy.types.Operator):
         trans_edit.x_val_locate = 0.00
         trans_edit.y_val_locate = 0.00
         trans_edit.z_val_locate = 0.00 
-        
+    
         trans_edit.x_val_rotate_euler = 0.00 
         trans_edit.y_val_rotate_euler = 0.00 
         trans_edit.z_val_rotate_euler = 0.00 
@@ -363,8 +378,6 @@ class TRANSFORMADDON_OT_Reset_Transform_Data(bpy.types.Operator):
         trans_edit.x_val_rotate_quaternion = 0.00 
         trans_edit.y_val_rotate_quaternion = 0.00 
         trans_edit.z_val_rotate_quaternion = 0.00 
-        
-        trans_edit.mode_of_rotation = 'QUATERNION'
         
         trans_edit.x_val_scale = 1.00
         trans_edit.y_val_scale = 1.00
@@ -380,20 +393,23 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Item"
     
-    
     #appear in object mode and pose mode only
     @classmethod
     def poll(cls,context):
         if context.mode == 'OBJECT' or context.mode == 'POSE':
             return True
     
-    
     def draw(self, context):
         layout = self.layout
         trans_edit = context.scene.trans_edit 
         
+        icon = "LOCKED"
         
-        
+        if trans_edit.mode_of_lock == "ENABLE":
+            icon = "LOCKED"
+        else: 
+            icon = "UNLOCKED"
+             
         #################################################################
         layout.label(text="Location")
         
@@ -408,14 +424,12 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
         loc_column_float.prop(trans_edit, "y_val_locate")
         loc_column_float.prop(trans_edit, "z_val_locate")
         
-      
         #################################################################
         ### lock buttons 
         
-        loc_column_lock.prop(trans_edit, "x_lock_locate", toggle=True)
-        loc_column_lock.prop(trans_edit, "y_lock_locate", toggle=True)
-        loc_column_lock.prop(trans_edit, "z_lock_locate", toggle=True)
-        
+        loc_column_lock.prop(trans_edit, "x_lock_locate", icon=icon, toggle=True)
+        loc_column_lock.prop(trans_edit, "y_lock_locate", icon=icon, toggle=True)
+        loc_column_lock.prop(trans_edit, "z_lock_locate", icon=icon, toggle=True)
         
         ##########################################################################
         ##########################################################################
@@ -428,7 +442,6 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
         rotation_row = layout.row(align=True) #rest of the grid; 1 row, 2 columns 
         rot_column_float = rotation_row.column(align=True) #floats
         rot_column_lock = rotation_row.column(align=True) #lock buttons
-        
         
         #################################################################
         ### rotation fields
@@ -447,9 +460,9 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
         #################################################################
         ### lock buttons 
             
-        rot_column_lock.prop(trans_edit, "x_lock_rotate", toggle=True)
-        rot_column_lock.prop(trans_edit, "y_lock_rotate", toggle=True)
-        rot_column_lock.prop(trans_edit, "z_lock_rotate", toggle=True)
+        rot_column_lock.prop(trans_edit, "x_lock_rotate", icon=icon, toggle=True)
+        rot_column_lock.prop(trans_edit, "y_lock_rotate", icon=icon, toggle=True)
+        rot_column_lock.prop(trans_edit, "z_lock_rotate", icon=icon, toggle=True)
       
         ##########################################################################
         layout.label(text="Scale")
@@ -458,7 +471,6 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
         scl_column_float = scale_row.column(align=True) #floats
         scl_column_lock = scale_row.column(align=True) #lock buttons
         
-        
         #################################################################
         ### rotation fields
         
@@ -466,19 +478,20 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
         scl_column_float.prop(trans_edit, "y_val_scale")
         scl_column_float.prop(trans_edit, "z_val_scale")
         
-       
         #################################################################
         ### lock buttons 
             
-        scl_column_lock.prop(trans_edit, "x_lock_scale", toggle=True)
-        scl_column_lock.prop(trans_edit, "y_lock_scale", toggle=True)
-        scl_column_lock.prop(trans_edit, "z_lock_scale", toggle=True)
+        scl_column_lock.prop(trans_edit, "x_lock_scale", icon=icon, toggle=True)
+        scl_column_lock.prop(trans_edit, "y_lock_scale", icon=icon, toggle=True)
+        scl_column_lock.prop(trans_edit, "z_lock_scale", icon=icon, toggle=True)
         
         ######################################################
    
+        layout.prop(trans_edit, "mode_of_lock", expand=True)
+        
         row = layout.row(align=True)
-        row.operator(TRANSFORMADDON_OT_Apply_Lock_Data.bl_idname, text="Locks")
         row.operator(TRANSFORMADDON_OT_Apply_Transform_Data.bl_idname, text="Values")
+        row.operator(TRANSFORMADDON_OT_Apply_Lock_Data.bl_idname, text="Locks")
         
         ### Rotation dropdown ############################################
         
@@ -487,7 +500,6 @@ class TRANSFORMADDON_PT_Panel(bpy.types.Panel):
         layout.operator(TRANSFORMADDON_OT_Apply_Rotation_Mode.bl_idname, text="Apply R mode")
         
         ##########################################################################
-        
         
         layout.operator(TRANSFORMADDON_OT_Reset_Transform_Data.bl_idname, text="Reset")
         
